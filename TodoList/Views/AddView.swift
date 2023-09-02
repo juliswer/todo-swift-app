@@ -8,7 +8,11 @@
 import SwiftUI
 
 struct AddView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var listViewModel : ListViewModel
     @State var textFieldText: String = ""
+    @State var alerTitle : String = ""
+    @State var showAlert : Bool = false
     
     var body: some View {
         ScrollView {
@@ -19,9 +23,7 @@ struct AddView: View {
                     .background(Color(red: 0.9, green: 0.9, blue: 0.9))
                     .cornerRadius(10)
                 
-                Button (action: {
-                    
-                }, label: {
+                Button (action: saveButtonPressed, label: {
                     Text("Save".uppercased())
                         .foregroundColor(.white)
                         .font(.headline)
@@ -34,6 +36,34 @@ struct AddView: View {
             .padding(14)
         }
         .navigationTitle("Add an Item")
+        .alert(isPresented: $showAlert, content: getAlert)
+    }
+    
+    func saveButtonPressed() {
+        if textIsAppropiate() {
+            listViewModel.addItem(title: textFieldText)
+            presentationMode.wrappedValue.dismiss()
+        }
+    }
+    
+    func textIsAppropiate() -> Bool {
+        if textFieldText.count < 3 || textFieldText.count > 16 {
+            alerTitle = "Your new TODO item must be at least 3 characters and not longer than 16 characters"
+            showAlert.toggle()
+            return false
+        }
+        
+        if listViewModel.todoAlreadyExistsInApp(title: textFieldText) {
+            alerTitle = "That TODO already exists. Please change the title"
+            showAlert.toggle()
+            return false
+        }
+        
+        return true
+    }
+    
+    func getAlert() -> Alert {
+        return Alert(title: Text(alerTitle))
     }
 }
 
@@ -42,5 +72,6 @@ struct AddView_Previews: PreviewProvider {
         NavigationView {
             AddView()
         }
+        .environmentObject(ListViewModel())
     }
 }
