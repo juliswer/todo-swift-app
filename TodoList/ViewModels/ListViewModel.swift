@@ -8,19 +8,23 @@
 import Foundation
 
 class ListViewModel : ObservableObject {
-    @Published var todos : [TODOModel] = []
+    @Published var todos : [TODOModel] = [] {
+        didSet {
+            saveTodos()
+        }
+    }
+    let todosKey: String = "todos_list"
     init() {
         getTodos()
     }
     
     func getTodos() {
-        let newTodos = [
-            TODOModel(title: "This is the first title!", isCompleted: false),
-            TODOModel(title: "This is the second title!", isCompleted: true),
-            TODOModel(title: "This is the third title!", isCompleted: false),
-        ]
-                      
-        todos.append(contentsOf: newTodos)
+        guard
+            let data = UserDefaults.standard.data(forKey: todosKey),
+            let savedItems = try? JSONDecoder().decode([TODOModel].self, from: data)
+        else { return }
+        
+        self.todos = savedItems
     }
     
     func deleteItem(indexSet: IndexSet) {
@@ -43,6 +47,12 @@ class ListViewModel : ObservableObject {
     func updateItem(item: TODOModel) {
         if let index = todos.firstIndex(where: { $0.id == item.id }) {
             todos[index] = item.updateCompletion()
+        }
+    }
+    
+    func saveTodos() {
+        if let encodedData = try? JSONEncoder().encode(todos) {
+            UserDefaults.standard.set(encodedData, forKey: todosKey)
         }
     }
 }

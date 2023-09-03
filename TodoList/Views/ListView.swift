@@ -31,6 +31,10 @@ struct ListView: View {
             trailing:
                 NavigationLink("Add", destination: AddView())
         )
+        if(listViewModel.todos.isEmpty) {
+            Text("No TODOs to Show")
+                .foregroundColor(.black)
+        }
     }
 }
 
@@ -42,5 +46,3 @@ struct ListView_Previews: PreviewProvider {
         .environmentObject(ListViewModel())
     }
 }
-
-
